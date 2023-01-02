@@ -17,18 +17,27 @@ def get_channel_id(channel_name):
     channel_id = data["items"][0]["snippet"]["channelId"]
     return channel_id
 
-def get_channel_videos(channel_id):
+def get_channel_videos(channel_id, page_token=None):
     # Use the YouTube Data API to get a list of the channel's videos
-    url = f"https://www.googleapis.com/youtube/v3/search?key={api_key}&channelId={channel_id}&part=snippet,id&order=date&maxResults=2000"
+    url = f"https://www.googleapis.com/youtube/v3/search?key={api_key}&channelId={channel_id}&part=snippet,id&order=date&maxResults=20"
+    if page_token is not None:
+        url += f"&pageToken={page_token}"
     response = requests.get(url)
     data = response.json()
 
+
     # Extract the video URLs from the API response
     try:
-        return [(item["id"]["videoId"], item["snippet"]["title"]) for item in data["items"]]
+        videos = [(item["id"]["videoId"], item["snippet"]["title"]) for item in data["items"] if 'videoId' in item["id"]]
     except Exception as e:
+        print(e)
+        videos = []
         print(data)
-        raise e
+        for item in data["items"]:
+            print(item['id'])
+
+    next_page_token = data.get("nextPageToken")
+    return videos, next_page_token
 
 def get_transcript_for_video(video_id, title):
     transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
@@ -40,7 +49,13 @@ def extract_content(channel):
     channel_id = get_channel_id(channel)
     print(f'channel id: {channel_id}')
     content = []
-    videos = get_channel_videos(channel_id)
+    page_token = None
+    videos = []
+    while True:
+        video_urls, page_token = get_channel_videos(channel_id, page_token)
+        videos.extend(video_urls)
+        if page_token is None:
+            break
     print(f'got {len(videos)} videos')
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
         future_to_url = {executor.submit(get_transcript_for_video, video_id, title): video_id for video_id, title in videos[:1000]}
