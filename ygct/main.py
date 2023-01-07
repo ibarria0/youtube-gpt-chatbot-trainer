@@ -26,7 +26,7 @@ def main():
         utils.train_embeddings(content, args.channel)
         print('done')
         
-    elif args.command == "test":
+    elif args.command == "ask":
         df = pd.read_csv(f'train-data/{args.channel}_sections.csv')
         document_embeddings = utils.load_embeddings(f'train-data/{args.channel}_embeddings.csv')
         while True:
