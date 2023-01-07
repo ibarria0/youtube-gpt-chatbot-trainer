@@ -25,7 +25,7 @@ COMPLETIONS_API_PARAMS = {
     # We use temperature of 0.0 because it gives the most predictable, factual answer.
     "temperature": 0.0,
     "max_tokens": 300,
-    "model": "text-davinci-002",
+    "model": "text-davinci-003",
 }
 
 def get_embedding(text: str, model: str) -> list[float]:
@@ -48,10 +48,6 @@ def compute_doc_embeddings(df: pd.DataFrame) -> dict[tuple[str, str], list[float
     Return a dictionary that maps between each embedding vector and the index of the row that it corresponds to.
     """
     embeddings = []
-    print(df)
-    #for e in tqdm(df['content'].values):
-    #    e = get_doc_embedding(e)
-    #    embeddings.append(e)
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         future_to_url = {executor.submit(get_doc_embedding, row['content']): idx for idx, row in df.iterrows()}
         for future in tqdm(concurrent.futures.as_completed(future_to_url), total=len(future_to_url)):
@@ -156,9 +152,9 @@ def construct_prompt(question: str, context_embeddings: dict, df: pd.DataFrame) 
         chosen_sections.append(SEPARATOR + document_section.replace("\n", " "))
 
     # Useful diagnostic information
-    print(f"Selected {len(chosen_sections)} document sections:")
-    print("\n".join(chosen_sections))
-    print("\n")
+    #print(f"Selected {len(chosen_sections)} document sections")
+    #print("\n".join(chosen_sections))
+    #print("\n")
 
     header = """Answer the question as truthfully as possible using the provided context, and if the answer is not contained within the text below, say "I don't know."\n\nContext:\n"""
 
