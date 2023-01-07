@@ -39,7 +39,7 @@ python ygct/main.py ask https://www.youtube.com/@lacapitalcocina/
 loading....
 enter question
 
-Como recomientas sazonar un brisket?
+Como recomiendas sazonar un brisket?
 
 Recomiendo sazonar un brisket con sal, pimienta negra recién molida, ajo granulado, limón, y una cucharadita de cebolla en polvo.
 ```
