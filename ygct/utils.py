@@ -11,6 +11,7 @@ from tqdm import tqdm
 import concurrent.futures
 
 MAX_SECTION_LEN = 3000
+SECTION_TOKENS = 120
 SEPARATOR = "\n* "
 
 tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
@@ -47,10 +48,11 @@ def compute_doc_embeddings(df: pd.DataFrame) -> dict[tuple[str, str], list[float
     Return a dictionary that maps between each embedding vector and the index of the row that it corresponds to.
     """
     embeddings = []
+    print(df)
     #for e in tqdm(df['content'].values):
     #    e = get_doc_embedding(e)
     #    embeddings.append(e)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         future_to_url = {executor.submit(get_doc_embedding, row['content']): idx for idx, row in df.iterrows()}
         for future in tqdm(concurrent.futures.as_completed(future_to_url), total=len(future_to_url)):
             idx = future_to_url[future]
@@ -177,7 +179,7 @@ def count_tokens(text: str) -> int:
 def get_sections(transcript: list) -> list:
     texts = [t['text'] for t in transcript]
     avg = sum([count_tokens(t) for t in texts])/len(texts)
-    for chunk in grouper(int(100/avg), texts):
+    for chunk in grouper(int(SECTION_TOKENS/avg), texts):
         text = ' '.join(chunk).strip()
         yield (text, count_tokens(text))
 

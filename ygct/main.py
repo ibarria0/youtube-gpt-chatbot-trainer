@@ -2,12 +2,23 @@ import pandas as pd
 import argparse
 import downloader
 import utils
+import os
+
+def check_env():
+    for var in ["GOOGLE_API_KEY", "OPENAI_API_KEY"]:
+        if not os.getenv(var):
+            raise Exception(f"Missing {var}")
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["train", "test"])
+    parser.add_argument("command", choices=["train", "ask"])
     parser.add_argument("channel")
     args = parser.parse_args()
+
+    check_env()
+    if not os.path.exists('train-data'):
+        # Create the directory
+        os.makedirs('train-data')
 
     if args.command == "train":
         print(f'training with channel {args.channel}')	
